@@ -1,38 +1,39 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
-from .models import ShoppingList, ShoppingItem
-from .serializers import ShoppingListSerializer, ShoppingItemSerializer
-from django.shortcuts import render
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
 
-def index(request):
-    return render(request, 'index2.html')
+class ListConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.list_id = self.scope['url_route']['kwargs']['list_id']
+        self.room_group_name = f'list_{self.list_id}'
 
-# Для создания и отображения списка покупок
-class ShoppingListView(generics.ListCreateAPIView):
-    queryset = ShoppingList.objects.all()
-    serializer_class = ShoppingListSerializer
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
 
-    def perform_create(self, serializer):
-        # Создаем новый список покупок без необходимости переопределять create()
-        serializer.save()
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
 
-class ShoppingListDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ShoppingList.objects.all()
-    serializer_class = ShoppingListSerializer
-    lookup_field = 'id'
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        action = data['action']
+        item = data['item']
 
-# Для создания товара в списке покупок
-class ShoppingItemCreateView(generics.CreateAPIView):
-    queryset = ShoppingItem.objects.all()
-    serializer_class = ShoppingItemSerializer
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'list_action',
+                'action': action,
+                'item': item
+            }
+        )
 
-    def perform_create(self, serializer):
-        list_id = self.request.data.get('list_id')
-        
-        try:
-            shopping_list = ShoppingList.objects.get(id=list_id)
-        except ShoppingList.DoesNotExist:
-            raise NotFound("Shopping list with the given ID does not exist.")
-        
-        serializer.save(list=shopping_list)
+    async def list_action(self, event):
+        await self.send(text_data=json.dumps({
+            'action': event['action'],
+            'item': event['item']
+        }))

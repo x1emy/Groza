@@ -1,11 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface Item {
-  id: number;
-  name: string;
-  bought: boolean;
-}
+import { Item } from '../../models/item.models';
 
 @Component({
   selector: 'app-item',
@@ -16,15 +11,15 @@ interface Item {
 })
 export class ItemComponent {
   @Input() item!: Item;
-  @Output() toggle = new EventEmitter<void>();
-  @Output() delete = new EventEmitter<MouseEvent>();
+  @Output() toggle = new EventEmitter<Item>();
+  @Output() delete = new EventEmitter<{item: Item, event: MouseEvent}>();
 
-  onToggle(): void {
-    this.toggle.emit(); // Просто сообщаем наверх, что нужно "переключить" куплено/не куплено
+  onToggle() {
+    this.toggle.emit(this.item);
   }
 
-  onDelete(event: MouseEvent): void {
-    event.stopPropagation(); // чтобы клик не сработал на переключение
-    this.delete.emit(event); // передаём событие наверх
+  onDelete(event: MouseEvent) {
+    event.stopPropagation();
+    this.delete.emit({item: this.item, event});
   }
 }

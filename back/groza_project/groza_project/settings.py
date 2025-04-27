@@ -69,7 +69,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",  # Для Angular development
-    "http://127.0.0.1:8000",  # Для Django development
+    "http://127.0.0.1:4200",  # Для Django development
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CHANNEL_LAYERS = {

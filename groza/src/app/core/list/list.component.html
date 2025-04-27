@@ -7,7 +7,9 @@
     <ul id="list-container">
       <app-item 
         *ngFor="let item of items" 
-        [item]="item">
+        [item]="item"
+        (toggle)="toggleBought($event)"
+        (delete)="deleteItem($event.item, $event.event)">
       </app-item>
     </ul>
   </div>

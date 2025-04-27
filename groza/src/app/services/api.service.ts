@@ -6,23 +6,26 @@ import { Item } from '../models/item.models';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:3000'; // ⚡ сюда вставь адрес своего бэкенда
+  private apiUrl = 'http://127.0.0.1:8000/api'; // ⚡ сюда вставь адрес своего бэкенда
 
   constructor(private http: HttpClient) {}
 
   getItems(): Observable<Item[]> {
-    return this.http.get<Item[]>(`${this.baseUrl}/items`);
+    return this.http.get<Item[]>(`${this.apiUrl}/items`);
   }
 
   addItem(item: Item): Observable<Item> {
-    return this.http.post<Item>(`${this.baseUrl}/items`, item);
+    return this.http.post<Item>(`${this.apiUrl}/items`, item);
   }
 
   deleteItem(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/items/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/items/${id}`);
   }
 
   updateItem(item: Item): Observable<Item> {
-    return this.http.put<Item>(`${this.baseUrl}/items/${item.id}`, item);
+    return this.http.put<Item>(`${this.apiUrl}/items/${item.id}`, item);
+  }
+  getList(listId: string): Observable<Item[]> {
+    return this.http.get<Item[]>(`${this.apiUrl}/lists/${listId}/`);
   }
 }
