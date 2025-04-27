@@ -1,0 +1,19 @@
+<div class="container">
+  <div class="tobuy-app">
+    <h2>Groza <img src="assets/icon.png"></h2>
+
+    <app-add-item (itemAdded)="onItemAdded($event)"></app-add-item>
+
+    <ul id="list-container">
+      <app-item 
+        *ngFor="let item of items" 
+        [item]="item">
+      </app-item>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  <p>Groza &copy; 2023</p>
+  <p>Сделано с ❤️ в Groza</p>
+</div>

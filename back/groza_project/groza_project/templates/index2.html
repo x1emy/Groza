@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <p id="status">Подключение к WebSocket...</p>
+    <script>
+        const socket = new WebSocket('ws://127.0.0.1:8000/ws/list/0ea2402c-939f-47fb-beaf-471432e80843/');
+
+        socket.onopen = function(event) {
+            document.getElementById('status').innerText = 'WebSocket подключен';
+            console.log('WebSocket подключен');
+        };
+
+        socket.onmessage = function(event) {
+            console.log('Получено сообщение:', event.data);
+        };
+
+        socket.onerror = function(error) {
+            document.getElementById('status').innerText = 'Ошибка WebSocket';
+            console.log('Ошибка WebSocket:', error);
+        };
+
+        socket.onclose = function(event) {
+            document.getElementById('status').innerText = 'WebSocket закрыт';
+            console.log('WebSocket закрыт');
+        };
+    </script>
+</body>
+</html>

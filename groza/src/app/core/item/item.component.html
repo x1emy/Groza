@@ -1,0 +1,6 @@
+<li [class.checked]="item.bought" (click)="onToggle()">
+    <img [src]="item.bought ? '/assets/checked.png' : '/assets/unchecked.png'" class="check-icon" alt="check icon">
+    {{ item.name }}
+    <span class="delete-btn" (click)="onDelete($event)">×</span>
+  </li>
+  

@@ -1,0 +1,152 @@
+/* Основные стили */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #153677, #4e085f);
+    padding: 10px;
+}
+
+.tobuy-app {
+    width: 100%;
+    max-width: 540px;
+    background: white;
+    margin: 100px auto 20px;
+    padding: 40px 30px 70px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.tobuy-app h2 {
+    color: #002765;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.tobuy-app h2 img {
+    width: 30px;
+    margin-left: 10px;
+}
+
+/* Стили для списка */
+#list-container {
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+#list-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+#list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#list-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+#list-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+ul li {
+    list-style: none;
+    font-size: 17px;
+    padding: 12px 8px 12px 50px;
+    user-select: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #eee;
+}
+
+ul li:hover {
+    background: #f9f9f9;
+}
+
+ul li:before {
+    content: '';
+    position: absolute;
+    height: 28px;
+    width: 28px;
+    border-radius: 50%;
+    background-image: url('/assets/unchecked.png');
+    background-size: cover;
+    background-position: center;
+    top: 12px;
+    left: 8px;
+}
+
+ul li.checked {
+    color: #555;
+    text-decoration: line-through;
+}
+
+ul li.checked:before {
+    background-image: url('/assets/checked.png');
+}
+
+/* Стили для кнопки удаления */
+ul li .delete-btn {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    font-size: 22px;
+    color: #ff5945;
+    line-height: 30px;
+    text-align: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+ul li:hover .delete-btn {
+    opacity: 1;
+}
+
+ul li .delete-btn:hover {
+    background: #edeef0;
+    color: #ff0000;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    .tobuy-app {
+        margin: 50px auto 10px;
+        padding: 20px 15px 35px;
+    }
+    
+    ul li {
+        font-size: 15px;
+        padding: 10px 8px 10px 40px;
+    }
+    
+    ul li:before {
+        height: 22px;
+        width: 22px;
+        top: 10px;
+        left: 5px;
+    }
+}
+.footer {
+    text-align: center;
+    background-color: #2c2c2c;
+    font-size: 14px;
+    color: #e2dede;
+}

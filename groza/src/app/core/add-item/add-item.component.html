@@ -1,0 +1,14 @@
+<div class="row">
+    <input
+      type="text"
+      [formControl]="itemControl"
+      placeholder="Что хотите не забыть купить?"
+      (keyup.enter)="addItem()"
+    >
+    <button 
+      (click)="addItem()"
+      [disabled]="itemControl.invalid"
+    >
+      внести
+    </button>
+  </div>
