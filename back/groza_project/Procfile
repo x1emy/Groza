@@ -1,1 +1,1 @@
-web: daphne -p $PORT groza_project.asgi:application
+web: daphne -p 8000 groza_project.asgi:application
