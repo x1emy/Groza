@@ -57,6 +57,7 @@ Groza — это приложение для ведения совместног
 
 3. Для запуска с Daphne (если используется ASGI сервер):
     ```bash
+    export DJANGO_SETTINGS_MODULE=groza_project.settings
     daphne -p 8000 groza_project.asgi:application
     ```
 
