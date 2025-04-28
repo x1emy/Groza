@@ -1,4 +1,4 @@
-// shopping-list.service.ts
+
 import { Injectable } from '@angular/core';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 

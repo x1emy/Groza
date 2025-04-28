@@ -1,7 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from groza_project.ai_service import generate_list  # Теперь импортируем из ai_service
+from groza_project.ai_service import generate_list  
 
 class ListConsumer(AsyncWebsocketConsumer):
     async def connect(self):

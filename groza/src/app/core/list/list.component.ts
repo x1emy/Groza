@@ -17,7 +17,7 @@ import { AIHelperComponent } from '../../ai-helper/ai-helper.component';
 export class ListComponent implements OnInit, OnDestroy {
   @Output() notify = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
   items: Item[] = [];
-  listId = '3f7d9a66-bbb7-4f1e-bd51-d8fe9826a870'; // TODO: Заменить на динамический ID
+  listId = '3f7d9a66-bbb7-4f1e-bd51-d8fe9826a870'; 
   private isConnected = false;
 
   constructor(

@@ -3,9 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 
-# Вот тут пишем функцию прямо здесь:
+
 def generate_list(prompt):
-    # Пример генерации списка — здесь может быть вызов ИИ
+
     return [f"Item {i+1} based on prompt: {prompt}" for i in range(5)]
 
 @csrf_exempt
