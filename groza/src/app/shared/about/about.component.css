@@ -1,4 +1,4 @@
-/* Основные стили */
+
 .about-container {
   max-width: 1150px;
   margin: 2rem auto;
@@ -12,7 +12,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Заголовки */
+
 .about-header h1 {
   font-size: 2rem;
   text-align: center;
@@ -35,7 +35,7 @@
   left: -10px;
 }
 
-/* Текст и выделения */
+
 .groza-highlight {
   color: #4CAF50;
   font-weight: 600;
@@ -47,7 +47,7 @@
   font-weight: 500;
 }
 
-/* Списки */
+
 .styled-list {
   list-style-type: none;
   padding-left: 0;
@@ -105,7 +105,7 @@
   opacity: 0.9;
 }
 
-/* Анимации */
+
 .groza-highlight {
   transition: all 0.3s ease;
 }
@@ -114,7 +114,7 @@
   text-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
 }
 
-/* Адаптивность */
+
 @media (max-width: 768px) {
   .about-container {
     padding: 1.5rem;

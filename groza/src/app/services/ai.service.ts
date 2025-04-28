@@ -19,7 +19,7 @@ export class AIService {
         headers: new HttpHeaders({
           'Content-Type': 'application/json',
         }),
-        withCredentials: true  // Изменили на true
+        withCredentials: true  
       }
     ).pipe(
       timeout(20000),

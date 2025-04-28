@@ -36,7 +36,9 @@ export class ListComponent implements OnInit, OnDestroy {
 
   private loadInitialData(): void {
     this.apiService.getList(this.listId).subscribe({
-      next: (items: Item[]) => {
+      next: (response: any) => {
+        
+        const items = Array.isArray(response) ? response : response?.data || [];
         this.items = this.normalizeItems(items);
         this.saveItems();
       },
@@ -50,7 +52,7 @@ export class ListComponent implements OnInit, OnDestroy {
   private initWebSocket(): void {
   this.websocketService.connect(this.listId);
   
-  // Подписываемся на события
+ 
   this.websocketService.onOpen$.subscribe(() => {
     this.isConnected = true;
     this.notify.emit({
@@ -65,7 +67,7 @@ export class ListComponent implements OnInit, OnDestroy {
       message: 'Соединение потеряно',
       type: 'error'
     });
-    // Автопереподключение через 5 секунд
+    
     setTimeout(() => this.initWebSocket(), 5000);
   });
 
@@ -139,9 +141,9 @@ export class ListComponent implements OnInit, OnDestroy {
     });
   }
 
-  // === Вспомогательные методы ===
-  private normalizeItems(items: Item[]): Item[] {
-    return items.map(item => ({
+
+  private normalizeItems(items: Item[] | null | undefined): Item[] {
+    return (items || []).map(item => ({
       id: item.id,
       name: item.name,
       bought: item.bought ?? false
@@ -177,9 +179,11 @@ export class ListComponent implements OnInit, OnDestroy {
     const saved = localStorage.getItem('shopping-list');
     if (saved) {
       try {
-        this.items = this.normalizeItems(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        this.items = this.normalizeItems(Array.isArray(parsed) ? parsed : []);
       } catch (e) {
         console.error('Ошибка загрузки из localStorage:', e);
+        this.items = []; 
       }
     }
   }
@@ -188,11 +192,11 @@ export class ListComponent implements OnInit, OnDestroy {
     localStorage.setItem('shopping-list', JSON.stringify(this.items));
   }
   handleNotification(event: { message: string; type: 'success' | 'error' }) {
-    // Можно продублировать уведомление или обработать иначе
+    
     console.log(`AI Helper: ${event.type} - ${event.message}`);
   }
   handleAISuggestions(items: string[]) {
-    // Process AI suggestions
+   
     items.forEach(item => {
       this.onItemAdded(item);
     });

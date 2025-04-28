@@ -69,7 +69,7 @@ export class AIHelperComponent {
     this.usingFallback = false;
 
     try {
-      // Пытаемся получить данные от AI сервиса
+      
       const response = await this.aiService.generateList(this.prompt).toPromise();
       
       if (response && response.length > 0) {
@@ -84,7 +84,7 @@ export class AIHelperComponent {
       this.usingFallback = true;
       this.suggestions = this.getFallbackSuggestions();
       
-      // Скрываем сообщение об ошибке через 3 секунды
+      
       setTimeout(() => this.error = '', 3000);
     } finally {
       this.isLoading = false;

@@ -7,5 +7,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('groza_list.urls')),
     path('api/ai/generate', generate_ai_list, name='generate_ai_list'),
-    path('', TemplateView.as_view(template_name='index2.html'), name='home'),  # Добавить маршрут для домашней страницы
+    path('', TemplateView.as_view(template_name='index2.html'), name='home'),  
 ]

@@ -12,7 +12,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 10;
-  font-family: 'Poppins', sans-serif; /* Применяем шрифт */
+  font-family: 'Poppins', sans-serif; 
 }
 
 .logo-container {
@@ -28,10 +28,10 @@
 
 .logo-text {
   font-size: 1.5rem;
-  font-weight: 600; /* Полужирное начертание */
+  font-weight: 600; 
   margin: 0;
   color: white;
-  letter-spacing: 0.5px; /* Лёгкий кернинг */
+  letter-spacing: 0.5px; 
 }
 
 .nav-links {
@@ -50,5 +50,5 @@
 
 .nav-links a:hover {
   opacity: 0.8;
-  text-decoration: underline; /* Добавляем подчёркивание при наведении */
+  text-decoration: underline; 
 }

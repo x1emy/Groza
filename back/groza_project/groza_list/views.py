@@ -8,18 +8,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-
-# Убедитесь, что импорты ведут на правильные модули
-# Убраны дублирующиеся импорты
-from groza_project.ai_service import huggingface_service
-
+from rest_framework.views import APIView
+from groza_project.ai_service import chatglm_service
 
 class ListConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.list_id = self.scope['url_route']['kwargs']['list_id']
         self.room_group_name = f'list_{self.list_id}'
 
-        # Добавлена проверка аутентификации
         if not self.scope["user"].is_authenticated:
             await self.close()
             return
@@ -65,14 +61,22 @@ class ListConsumer(AsyncWebsocketConsumer):
             'item': event['item']
         }))
 
+class ShoppingListDetailView(APIView):
+    def get(self, request, pk):
+        return Response({"message": f"Details for shopping list with ID {pk}"})
 
-@csrf_exempt
-@api_view(['POST'])
+class ShoppingListView(APIView):
+    def get(self, request):
+        return Response({"data": "Список shopping lists"})
+
+class ShoppingItemCreateView(APIView):
+    def post(self, request):
+        return Response({"status": "Item created"})
+
 @csrf_exempt
 @api_view(['POST'])
 def generate_ai_list(request):
     try:
-        # Проверка данных
         if not request.data or 'prompt' not in request.data:
             return Response(
                 {"error": "Prompt is required"},
@@ -84,15 +88,15 @@ def generate_ai_list(request):
             )
 
         prompt = request.data['prompt'].strip()
-        items = huggingface_service.generate_list(prompt)
-        
+    
+        items = chatglm_service.generate_list(prompt)
+
         response = Response({
             "items": items,
-            "model": os.getenv("HF_MODEL_NAME", "default-model"),
-            "source": "huggingface"
+            "model": "chatglm3-6b",
+            "source": "local"
         })
-        
-        # Явное указание CORS заголовков
+
         response["Access-Control-Allow-Origin"] = "http://localhost:4200"
         response["Access-Control-Allow-Credentials"] = "true"
         return response

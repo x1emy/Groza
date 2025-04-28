@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { WebsocketService } from '../../services/websocket.service'; // добавляем импорт
+import { WebsocketService } from '../../services/websocket.service'; 
 
 @Component({
   selector: 'app-add-item',
@@ -11,7 +11,7 @@ import { WebsocketService } from '../../services/websocket.service'; // доба
   styleUrls: ['./add-item.component.css']
 })
 export class AddItemComponent {
-  @Output() itemAdded = new EventEmitter<string>(); // <<< добавляем Output
+  @Output() itemAdded = new EventEmitter<string>(); 
   
   itemControl: FormControl<string | null> = new FormControl<string | null>('', [
     Validators.required,
@@ -31,16 +31,16 @@ export class AddItemComponent {
         bought: false
       };
 
-      // Отправляем в сокет
+      
       this.websocketService.sendMessage({
         action: 'add',
         item: newItem
       });
 
-      // Эмитим строку наверх родителю (ListComponent)
+      
       this.itemAdded.emit(itemName);
 
-      // Очищаем поле
+      
       this.itemControl.reset('');
     }
   }

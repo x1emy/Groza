@@ -6,7 +6,7 @@ import { Item } from '../models/item.models';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://127.0.0.1:8000/api'; // ⚡ сюда вставь адрес своего бэкенда
+  private apiUrl = 'http://127.0.0.1:8000/api'; 
 
   constructor(private http: HttpClient) {}
 

@@ -1,71 +1,97 @@
-import os
-import requests
-from dotenv import load_dotenv
-from django.core.cache import cache
-from typing import List, Optional
 import logging
+import re
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from django.core.cache import cache
+from typing import List
 
-load_dotenv()
 logger = logging.getLogger(__name__)
 
-class HuggingFaceService:
+class ChatGLMService:
     def __init__(self):
-        self.api_key = os.getenv("HF_API_KEY")
-        self.model = os.getenv("HF_MODEL_NAME", "sberbank-ai/rugpt3small")
-        self.api_url = f"https://api-inference.huggingface.co/models/{self.model}"
-        print(f"API KEY: {self.api_key}")
-        self.headers = {"Authorization": f"Bearer {self.api_key}"}
+        # Initialize the tokenizer and model for direct use with transformers
+        self.model_name = "cointegrated/rut5-base"
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
 
-    def _generate_with_fallback(self, prompt: str) -> List[str]:
-        prompt_lower = prompt.lower()
-        if "борщ" in prompt_lower:
-            return ["говядина", "свекла", "капуста", "сметана"]
-        elif "пирог" in prompt_lower:
-            return ["мука", "яйца", "сахар", "яблоки"]
-        return ["молоко", "хлеб", "яйца"]
-    
     def generate_list(self, prompt: str) -> List[str]:
-        cache_key = f"hf_{hash(prompt)}"
+        cache_key = f"flan_t5_{hash(prompt)}"
         
         if cached := cache.get(cache_key):
             return cached
 
         try:
-            payload = {
-                "inputs": f"Составь список продуктов для: {prompt}. "
-                         "Только названия через запятую, без номеров и пояснений. "
-                         "Формат: 'продукт1, продукт2, продукт3'",
-                "parameters": {
-                    "max_length": 100,
-                    "temperature": 0.7
-                }
-            }
-
-            response = requests.post(
-                self.api_url,
-                headers=self.headers,
-                json=payload,
-                timeout=10
+          
+            query = (
+                f"Список только самых основных ингредиентов для приготовления {prompt} "
+                f"в виде перечисления через запятую. Только названия продуктов, "
+                f"без пояснений, без количества, без инструкций. "
+                f"Пример: мука, вода, соль, сахар."
             )
-            response.raise_for_status()
 
-            result = response.json()
-            if isinstance(result, list) and len(result) > 0:
-                items_text = result[0].get("generated_text", "")
-                items = [item.strip() for item in items_text.split(",") if item.strip()]
-                
-                if items:
-                    cache.set(cache_key, items, timeout=3600)
-                    return items
+           
+            inputs = self.tokenizer(query, return_tensors="pt", truncation=True, padding=True)
+            generated_ids = self.model.generate(inputs['input_ids'], max_length=100, num_beams=5, no_repeat_ngram_size=2, early_stopping=True)
 
-        except requests.exceptions.RequestException as e:
-            logger.error(f"HuggingFace API error: {str(e)}")
-        
+            
+            generated_text = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+            logger.debug(f"Raw generated text: {generated_text}")
+
+            
+            items = self._clean_response(generated_text)
+
+            if items:
+                cache.set(cache_key, items, timeout=3600)
+                return items
+
+        except Exception as e:
+            logger.error(f"Error during generation: {str(e)}")
+
         return self._generate_with_fallback(prompt)
 
-# Создаём один объект
-huggingface_service = HuggingFaceService()
+    def _clean_response(self, text: str) -> List[str]:
+       
+        text = re.split(r"[:.]", text, maxsplit=1)[-1].strip()
 
-# А вот это то, чего не хватало!
+       
+        unwanted_phrases = [
+            "ингредиенты", "состав", "продукты", "нужны", "для приготовления",
+            "для", "рецепт", "включает", "может включать", "обычно включает"
+        ]
+
+        for phrase in unwanted_phrases:
+            text = text.replace(phrase, "")
+
+        
+        items = re.split(r"[,.\n]", text)
+
+        cleaned_items = []
+        for item in items:
+            item = item.strip().lower()
+            if item and len(item) > 2 and not any(unwanted in item for unwanted in unwanted_phrases):
+                cleaned_items.append(item)
+
+        return cleaned_items[:15]  
+
+    def _generate_with_fallback(self, prompt: str) -> List[str]:
+        # Фолбек для популярных блюд
+        fallback_recipes = {
+            "пицца": ["тесто для пиццы", "томатный соус", "сыр моцарелла", 
+                     "пепперони", "шампиньоны", "оливки"],
+            "борщ": ["говядина", "свекла", "капуста", "картофель", 
+                    "морковь", "лук", "сметана"],
+            "паста": ["макароны", "фарш мясной", "томатный соус", 
+                     "лук", "чеснок", "сыр пармезан"],
+            "салат": ["помидоры", "огурцы", "лук", "масло оливковое", 
+                     "соль", "перец"]
+        }
+        
+        prompt_lower = prompt.lower()
+        for dish, ingredients in fallback_recipes.items():
+            if dish in prompt_lower:
+                return ingredients
+        return ["молоко", "хлеб", "яйца", "масло"]
+
+chatglm_service = ChatGLMService()
+
 def generate_shopping_list(prompt: str) -> List[str]:
-    return huggingface_service.generate_list(prompt)
+    return chatglm_service.generate_list(prompt)
