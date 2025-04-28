@@ -14,7 +14,7 @@ Groza — это приложение для ведения совместног
 
 1. Склонируй репозиторий и перейди в его директорию:
     ```bash
-    git clone <repository_url>
+    git clone <https://github.com/x1emy/Groza.git>
     cd <project_directory>
     ```
 
