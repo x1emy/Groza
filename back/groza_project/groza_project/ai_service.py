@@ -1,97 +1,112 @@
-import logging
-import re
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-from django.core.cache import cache
-from typing import List
+import json
+import os
+import asyncio
+from channels.generic.websocket import AsyncWebsocketConsumer
+from django.conf import settings
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from rest_framework.views import APIView
+from groza_project.ai_service import chatglm_service
 
-logger = logging.getLogger(__name__)
+class ListConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.list_id = self.scope['url_route']['kwargs']['list_id']
+        self.room_group_name = f'list_{self.list_id}'
 
-class ChatGLMService:
-    def __init__(self):
-        # Initialize the tokenizer and model for direct use with transformers
-        self.model_name = "cointegrated/rut5-base"
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        if not self.scope["user"].is_authenticated:
+            await self.close()
+            return
 
-    def generate_list(self, prompt: str) -> List[str]:
-        cache_key = f"flan_t5_{hash(prompt)}"
-        
-        if cached := cache.get(cache_key):
-            return cached
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
 
-        try:
-          
-            query = (
-                f"Список только самых основных ингредиентов для приготовления {prompt} "
-                f"в виде перечисления через запятую. Только названия продуктов, "
-                f"без пояснений, без количества, без инструкций. "
-                f"Пример: мука, вода, соль, сахар."
+    async def disconnect(self, close_code):
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
             )
 
-           
-            inputs = self.tokenizer(query, return_tensors="pt", truncation=True, padding=True)
-            generated_ids = self.model.generate(inputs['input_ids'], max_length=100, num_beams=5, no_repeat_ngram_size=2, early_stopping=True)
+    async def receive(self, text_data):
+        try:
+            data = json.loads(text_data)
+            action = data.get('action')
+            item = data.get('item')
 
-            
-            generated_text = self.tokenizer.decode(generated_ids[0], skip_special_tokens=True)
-            logger.debug(f"Raw generated text: {generated_text}")
+            if not action or not item:
+                raise ValueError("Invalid data format")
 
-            
-            items = self._clean_response(generated_text)
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'list_action',
+                    'action': action,
+                    'item': item
+                }
+            )
+        except (json.JSONDecodeError, ValueError) as e:
+            await self.send(text_data=json.dumps({
+                'error': str(e)
+            }))
 
-            if items:
-                cache.set(cache_key, items, timeout=3600)
-                return items
+    async def list_action(self, event):
+        await self.send(text_data=json.dumps({
+            'action': event['action'],
+            'item': event['item']
+        }))
 
-        except Exception as e:
-            logger.error(f"Error during generation: {str(e)}")
+class ShoppingListDetailView(APIView):
+    def get(self, request, pk):
+        return Response({"message": f"Details for shopping list with ID {pk}"})
 
-        return self._generate_with_fallback(prompt)
+class ShoppingListView(APIView):
+    def get(self, request):
+        return Response({"data": "Список shopping lists"})
 
-    def _clean_response(self, text: str) -> List[str]:
-       
-        text = re.split(r"[:.]", text, maxsplit=1)[-1].strip()
+class ShoppingItemCreateView(APIView):
+    def post(self, request):
+        return Response({"status": "Item created"})
 
-       
-        unwanted_phrases = [
-            "ингредиенты", "состав", "продукты", "нужны", "для приготовления",
-            "для", "рецепт", "включает", "может включать", "обычно включает"
-        ]
+@csrf_exempt
+@api_view(['POST'])
+def generate_ai_list(request):
+    try:
+        if not request.data or 'prompt' not in request.data:
+            return Response(
+                {"error": "Prompt is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+                headers={
+                    "Access-Control-Allow-Origin": "http://localhost:4200",
+                    "Access-Control-Allow-Credentials": "true"
+                }
+            )
 
-        for phrase in unwanted_phrases:
-            text = text.replace(phrase, "")
+        prompt = request.data['prompt'].strip()
+    
+        items = chatglm_service.generate_list(prompt)
 
-        
-        items = re.split(r"[,.\n]", text)
+        response = Response({
+            "items": items,
+            "model": "chatglm3-6b",
+            "source": "local"
+        })
 
-        cleaned_items = []
-        for item in items:
-            item = item.strip().lower()
-            if item and len(item) > 2 and not any(unwanted in item for unwanted in unwanted_phrases):
-                cleaned_items.append(item)
+        response["Access-Control-Allow-Origin"] = "http://localhost:4200"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
 
-        return cleaned_items[:15]  
-
-    def _generate_with_fallback(self, prompt: str) -> List[str]:
-        # Фолбек для популярных блюд
-        fallback_recipes = {
-            "пицца": ["тесто для пиццы", "томатный соус", "сыр моцарелла", 
-                     "пепперони", "шампиньоны", "оливки"],
-            "борщ": ["говядина", "свекла", "капуста", "картофель", 
-                    "морковь", "лук", "сметана"],
-            "паста": ["макароны", "фарш мясной", "томатный соус", 
-                     "лук", "чеснок", "сыр пармезан"],
-            "салат": ["помидоры", "огурцы", "лук", "масло оливковое", 
-                     "соль", "перец"]
-        }
-        
-        prompt_lower = prompt.lower()
-        for dish, ingredients in fallback_recipes.items():
-            if dish in prompt_lower:
-                return ingredients
-        return ["молоко", "хлеб", "яйца", "масло"]
-
-chatglm_service = ChatGLMService()
-
-def generate_shopping_list(prompt: str) -> List[str]:
-    return chatglm_service.generate_list(prompt)
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            headers={
+                "Access-Control-Allow-Origin": "http://localhost:4200",
+                "Access-Control-Allow-Credentials": "true"
+            }
+        )

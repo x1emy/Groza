@@ -1,16 +1,14 @@
-from django.urls import path, re_path
-from .views import (
-    ShoppingListView,
-    ShoppingListDetailView,
-    ShoppingItemCreateView,
-    generate_ai_list
-)
+from rest_framework import serializers
+from .models import ShoppingList, ShoppingItem
 
-urlpatterns = [
-    path('lists/', ShoppingListView.as_view(), name='shopping-list'),
-    re_path(r'^lists/(?P<pk>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/$', 
-           ShoppingListDetailView.as_view(), 
-           name='shopping-list-detail'),
-    path('items/', ShoppingItemCreateView.as_view(), name='shopping-item-create'),
-    path('generate-ai/', generate_ai_list, name='generate-ai-list'),
-]
+class ShoppingItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingItem
+        fields = ['id', 'name', 'is_purchased', 'list'] 
+
+class ShoppingListSerializer(serializers.ModelSerializer):
+    items = ShoppingItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ShoppingList
+        fields = ['id', 'name', 'created_at', 'updated_at', 'items'] 

@@ -6,9 +6,19 @@
     box-sizing: border-box;
 }
 
-.container {
-    width: 100%;
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
+}
+
+.container {
+    flex: 1;
+    width: 100%;
     background: linear-gradient(135deg, #153677, #4e085f);
     padding: 10px;
 }
@@ -23,6 +33,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
+
 .tobuy-app h2 {
     color: #002765;
     display: flex;
@@ -36,7 +47,6 @@
     margin-left: 10px;
 }
 
-/* Стили для списка */
 #list-container {
     margin-top: 20px;
     max-height: 400px;
@@ -124,6 +134,13 @@ ul li .delete-btn:hover {
     background: #edeef0;
     color: #ff0000;
 }
+.footer {
+    text-align: center;
+    background-color: #2c2c2c;
+    color: #e2dede;
+    padding: 15px 0;
+    width: 100%;
+}
 
 /* Адаптивность */
 @media (max-width: 600px) {
@@ -143,10 +160,5 @@ ul li .delete-btn:hover {
         top: 10px;
         left: 5px;
     }
-}
-.footer {
-    text-align: center;
-    background-color: #2c2c2c;
-    font-size: 14px;
-    color: #e2dede;
+    
 }
