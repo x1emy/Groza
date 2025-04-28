@@ -1,22 +1,18 @@
-# lists/consumers.py
-
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-
-from groza_project.ai_service import chatglm_service
+from groza_project.ai_service import generate_list  # Теперь импортируем из ai_service
 
 class ListConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.list_id = self.scope['url_route']['kwargs']['list_id']
         self.room_group_name = f'list_{self.list_id}'
 
-        await self.accept()
-
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
+        await self.accept()
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
@@ -32,15 +28,14 @@ class ListConsumer(AsyncWebsocketConsumer):
             if action == 'generate_ai':
                 prompt = data.get('prompt', '')
 
-                # Генерируем список продуктов через ИИ
-                items = await database_sync_to_async(chatglm_service.generate_list)(prompt)
+                items = generate_list(prompt)
+
 
                 await self.send(text_data=json.dumps({
                     'type': 'ai_response',
                     'items': items
                 }))
             else:
-                
                 item = data.get('item')
 
                 await self.channel_layer.group_send(

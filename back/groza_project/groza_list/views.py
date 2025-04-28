@@ -9,7 +9,7 @@ from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from rest_framework.views import APIView
-from groza_project.ai_service import chatglm_service
+from groza_project.ai_service import generate_ai_list
 
 class ListConsumer(AsyncWebsocketConsumer):
     async def connect(self):

@@ -1,14 +1,8 @@
-from rest_framework import serializers
-from .models import ShoppingList, ShoppingItem
-
-class ShoppingItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShoppingItem
-        fields = ['id', 'name', 'is_purchased', 'list'] 
-
-class ShoppingListSerializer(serializers.ModelSerializer):
-    items = ShoppingItemSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = ShoppingList
-        fields = ['id', 'name', 'created_at', 'updated_at', 'items'] 
+from django.urls import path
+from .views import generate_ai_list
+from django.conf import settings
+from django.conf.urls.static import static
+urlpatterns = [
+    path('ai/generate', generate_ai_list, name='generate_ai_list'),
+]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
