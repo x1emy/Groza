@@ -1,0 +1,3 @@
+back/groza_project/models/
+*.safetensors
+*.incomplete

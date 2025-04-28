@@ -5,11 +5,12 @@ import { ItemComponent } from '../item/item.component';
 import { ApiService } from '../../services/api.service';
 import { WebsocketService } from '../../services/websocket.service';
 import { Item } from '../../models/item.models';
+import { AIHelperComponent } from '../../ai-helper/ai-helper.component';
 
 @Component({
   selector: 'app-list',
   standalone: true,
-  imports: [CommonModule, AddItemComponent, ItemComponent],
+  imports: [CommonModule, AddItemComponent, ItemComponent, AIHelperComponent],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.css']
 })
@@ -50,7 +51,7 @@ export class ListComponent implements OnInit, OnDestroy {
   this.websocketService.connect(this.listId);
   
   // Подписываемся на события
-  this.websocketService.onOpen(() => {
+  this.websocketService.onOpen$.subscribe(() => {
     this.isConnected = true;
     this.notify.emit({
       message: 'Соединение установлено',
@@ -58,7 +59,7 @@ export class ListComponent implements OnInit, OnDestroy {
     });
   });
 
-  this.websocketService.onClose(() => {
+  this.websocketService.onClose$.subscribe(() => {
     this.isConnected = false;
     this.notify.emit({
       message: 'Соединение потеряно',
@@ -68,17 +69,17 @@ export class ListComponent implements OnInit, OnDestroy {
     setTimeout(() => this.initWebSocket(), 5000);
   });
 
-  this.websocketService.onError((error) => {
+  this.websocketService.onError$.subscribe((error) => {
     console.error('WebSocket ошибка:', error);
     this.notify.emit({
       message: 'Ошибка соединения',
       type: 'error'
     });
   });
-
-  this.websocketService.onMessage((data) => {
+  this.websocketService.messages$.subscribe((data) => {
     this.handleIncomingMessage(data);
   });
+  
 }
   private handleIncomingMessage(data: any): void {
     console.log('WebSocket сообщение:', data);
@@ -107,13 +108,13 @@ export class ListComponent implements OnInit, OnDestroy {
   // === Основные публичные методы ===
   onItemAdded(itemName: string): void {
     if (!itemName.trim()) return;
-
+  
     const newItem: Item = {
       id: Date.now(),
       name: itemName,
       bought: false
     };
-
+  
     this.websocketService.sendMessage({
       action: 'add',
       item: newItem
@@ -185,5 +186,20 @@ export class ListComponent implements OnInit, OnDestroy {
 
   private saveItems(): void {
     localStorage.setItem('shopping-list', JSON.stringify(this.items));
+  }
+  handleNotification(event: { message: string; type: 'success' | 'error' }) {
+    // Можно продублировать уведомление или обработать иначе
+    console.log(`AI Helper: ${event.type} - ${event.message}`);
+  }
+  handleAISuggestions(items: string[]) {
+    // Process AI suggestions
+    items.forEach(item => {
+      this.onItemAdded(item);
+    });
+  }
+  onItemsAdded(items: string[]) {
+    items.forEach(item => {
+      this.onItemAdded(item);
+    });
   }
 }

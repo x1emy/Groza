@@ -1,70 +1,52 @@
+// websocket.service.ts
 import { Injectable } from '@angular/core';
+import { Subject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebsocketService {
   private socket: WebSocket | null = null;
-  private onOpenCallback: (() => void) | null = null;
-  private onCloseCallback: (() => void) | null = null;
-  private onErrorCallback: ((error: Event) => void) | null = null;
-  private onMessageCallback: ((data: any) => void) | null = null;
+  private messageSubject = new Subject<any>();
+  private openSubject = new Subject<void>();
+  private closeSubject = new Subject<void>();
+  private errorSubject = new Subject<Event>();
+
+  public messages$: Observable<any> = this.messageSubject.asObservable();
+  public onOpen$: Observable<void> = this.openSubject.asObservable();
+  public onClose$: Observable<void> = this.closeSubject.asObservable();
+  public onError$: Observable<Event> = this.errorSubject.asObservable();
 
   connect(listId: string): void {
     this.socket = new WebSocket(`ws://127.0.0.1:8000/ws/lists/${listId}/`);
 
     this.socket.onopen = () => {
       console.log('✅ WebSocket подключен');
-      if (this.onOpenCallback) {
-        this.onOpenCallback();
-      }
+      this.openSubject.next();
     };
 
     this.socket.onclose = (event) => {
       console.log('❌ WebSocket отключен', event);
-      if (this.onCloseCallback) {
-        this.onCloseCallback();
-      }
+      this.closeSubject.next();
     };
 
     this.socket.onerror = (error) => {
       console.error('⚠️ Ошибка WebSocket', error);
-      if (this.onErrorCallback) {
-        this.onErrorCallback(error);
-      }
+      this.errorSubject.next(error);
     };
 
     this.socket.onmessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
-        if (this.onMessageCallback) {
-          this.onMessageCallback(data);
-        }
+        this.messageSubject.next(data);
       } catch (e) {
         console.error('Ошибка парсинга сообщения', e);
       }
     };
   }
 
-  // Новые методы для подписки на события
-  onOpen(callback: () => void): void {
-    this.onOpenCallback = callback;
-  }
-
-  onClose(callback: () => void): void {
-    this.onCloseCallback = callback;
-  }
-
-  onError(callback: (error: Event) => void): void {
-    this.onErrorCallback = callback;
-  }
-
-  onMessage(callback: (data: any) => void): void {
-    this.onMessageCallback = callback;
-  }
-
   sendMessage(message: any): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+    if (this.socket?.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify(message));
     } else {
       console.warn('WebSocket не подключен');
@@ -72,9 +54,7 @@ export class WebsocketService {
   }
 
   close(): void {
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
-    }
+    this.socket?.close();
+    this.socket = null;
   }
 }

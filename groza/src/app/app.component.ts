@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HeaderComponent } from './shared/header/header.component';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-
+import { ShoppingListService } from './services/shopping-list.service';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -34,5 +34,16 @@ export class AppComponent {
     setTimeout(() => {
       this.notificationVisible = false;
     }, 3000);
+  }
+  prompt = '';
+  items: string[] = [];
+
+  constructor(private shoppingService: ShoppingListService) {}
+
+  getList() {
+    this.shoppingService.getShoppingList(this.prompt)
+      .subscribe(response => {
+        this.items = response.items;
+      });
   }
 }

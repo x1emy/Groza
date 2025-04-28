@@ -1,6 +1,7 @@
+<!-- list.component.html -->
 <div class="container">
   <div class="tobuy-app">
-    <h2>Groza <img src="assets/icon.png"></h2>
+    <h2>Groza <img src="assets/icon.png" alt="Логотип"></h2>
 
     <app-add-item (itemAdded)="onItemAdded($event)"></app-add-item>
 
@@ -12,10 +13,13 @@
         (delete)="deleteItem($event.item, $event.event)">
       </app-item>
     </ul>
-  </div>
-</div>
 
-<div class="footer">
-  <p>Groza &copy; 2023</p>
-  <p>Сделано с ❤️ в Groza</p>
+    <!-- Добавляем AI помощник -->
+    <app-ai-helper (itemAdded)="onItemsAdded($event)"></app-ai-helper>
+  </div>
+
+  <div class="footer">
+    <p>Groza &copy; 2025</p>
+    <p>Сделано с ❤️ в Groza</p>
+  </div>
 </div>
